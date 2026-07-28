@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "docx": "^9.7.1",
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1",
+    "multer": "^2.2.0",
+    "node.js": "^0.0.1-security",
+    "pdf-parse": "^2.4.5",
+    "pdfkit": "^0.19.1"
+  }
+}

@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anas Workbook - CRM & Brand Profiles</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/fix-dropdown.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f1117;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius-lg: 20px;
+            --radius-md: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+        }
+
+        /* --- ANIMATIONS INDEX.HTML --- */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .page-fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .animate-up {
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 1.5rem 2rem;
+            border-radius: var(--radius-lg);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        header h1 i {
+            color: var(--accent-color);
+            -webkit-text-fill-color: var(--accent-color);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.65rem 1.2rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--card-border);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* CRM Table Card */
+        .table-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            padding: 1rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--card-border);
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        #clientsTableBody tr {
+            animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+            transition: background 0.2s ease;
+        }
+
+        #clientsTableBody tr:hover {
+            background: rgba(99, 102, 241, 0.06);
+        }
+
+        .client-clickable-row {
+            cursor: pointer;
+        }
+
+        .notes-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+        }
+
+        .notes-badge:hover {
+            color: var(--accent-color);
+        }
+
+        .badge-status {
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-prospect { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .status-active { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .status-inactive { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+        .brand-profile-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .brand-profile-link:hover {
+            text-decoration: underline;
+        }
+
+        /* MODALS */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-overlay.active .modal {
+            animation: modalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .modal {
+            background: #161922;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 550px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            transform: scale(0.9);
+            opacity: 0;
+        }
+
+        /* --- TOAST --- */
+        .toast-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: #161922;
+            border: 1px solid var(--card-border);
+            border-left: 3px solid var(--accent-color);
+            border-radius: var(--radius-md);
+            padding: 0.85rem 1.2rem;
+            font-size: 0.85rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .toast.toast-danger {
+            border-left-color: var(--danger);
+        }
+
+        .modal h2 { font-size: 1.4rem; }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 0.75rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: var(--accent-color);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="page-fade-in">
+
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper">
+        <header class="animate-up">
+            <div>
+                <h1><i class="fa-solid fa-users"></i> CRM & Brand Profiles</h1>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.3rem;">Gérez vos clients, importez vos listes et consultez leurs Brand Profiles.</p>
+            </div>
+            <div class="header-actions">
+                <a href="/" class="btn"><i class="fa-solid fa-flask"></i> Parfums</a>
+                <a href="/report" class="btn"><i class="fa-solid fa-file-invoice"></i> Rapport Docs</a>
+                <button class="btn" onclick="openImportModal()"><i class="fa-solid fa-file-import"></i> Importer Clients</button>
+                <button class="btn btn-primary" onclick="openAddClientModal()"><i class="fa-solid fa-user-plus"></i> Nouveau Client</button>
+            </div>
+        </header>
+
+        <!-- Barre d'actions groupées -->
+        <div id="bulkActionsBar" style="display: none; align-items: center; justify-content: space-between; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); padding: 0.75rem 1.1rem; margin-bottom: 1rem;" class="animate-up">
+            <span style="font-size: 0.85rem;"><strong id="selectedCount">0</strong> client(s) sélectionné(s)</span>
+            <div style="display: flex; gap: 0.6rem;">
+                <button class="btn" onclick="clearSelection()">Annuler</button>
+                <button class="btn" style="border-color: var(--danger); color: var(--danger);" onclick="bulkDeleteClients()"><i class="fa-solid fa-trash"></i> Supprimer la sélection</button>
+            </div>
+        </div>
+
+        <!-- Table des Clients -->
+        <div class="table-card animate-up" style="animation-delay: 0.1s;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 2.5rem;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(event, this)" title="Tout sélectionner" style="accent-color: var(--accent-color); cursor: pointer;"></th>
+                        <th>Nom / Contact</th>
+                        <th>Entreprise</th>
+                        <th>Email & Tél</th>
+                        <th>Pays</th>
+                        <th>Statut</th>
+                        <th>Notes</th>
+                        <th>Brand Profile</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="clientsTableBody">
+                    <!-- Rempli en JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAL CLIENT (Ajout/Édition + Upload Brand Profile) -->
+    <div class="modal-overlay" id="clientModal">
+        <div class="modal">
+            <h2 id="modalTitle">Nouveau Client</h2>
+            <form id="clientForm" onsubmit="saveClient(event)">
+                <input type="hidden" id="clientId">
+                
+                <div class="form-group">
+                    <label>Nom du Contact *</label>
+                    <input type="text" id="clientName" required placeholder="Ex: Jean Dupont">
+                </div>
+                <div class="form-group">
+                    <label>Entreprise / Brand</label>
+                    <input type="text" id="clientCompany" placeholder="Ex: Parfums Luxury">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="clientEmail" placeholder="contact@brand.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Téléphone</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <select id="clientPhoneCode" style="max-width: 130px; padding: 0.75rem; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-md); color: var(--text-primary); outline: none;"></select>
+                            <input type="text" id="clientPhoneNumber" placeholder="6 12 34 56 78" style="flex: 1;">
+                        </div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Pays</label>
+                        <select id="clientCountry"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Type d'activité</label>
+                        <input type="text" id="clientBusinessType" placeholder="Ex: Marque, Distributeur...">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Statut</label>
+                    <select id="clientStatus">
+                        <option value="Prospect">Prospect</option>
+                        <option value="Actif">Actif</option>
+                        <option value="Inactif">Inactif</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Brand Profile (PDF / Fichier)</label>
+                    <input type="file" id="clientBrandFile" accept=".pdf,.doc,.docx,.png,.jpg">
+                    <small id="currentBrandProfile" style="color: var(--text-secondary); margin-top: 0.2rem;"></small>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn" onclick="closeClientModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL IMPORTATION MASSIVE DE CLIENTS -->
+    <div class="modal-overlay" id="importModal">
+        <div class="modal" style="max-width: 650px;">
+            <h2>Importation de Clients</h2>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                Importez un fichier CSV/Excel ou collez directement des données. Colonnes attendues, dans cet ordre :
+            </p>
+            <p style="font-size: 0.8rem; color: var(--accent-color); background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius-md); padding: 0.6rem 0.8rem;">
+                Company Name → Contact Person Name → Business Email Address → Phone Number → Country → Business Type
+            </p>
+
+            <div class="form-group">
+                <label>1. Fichier CSV ou Excel (.csv, .txt, .xlsx, .xls)</label>
+                <input type="file" id="importFile" accept=".csv,.txt,.xlsx,.xls">
+            </div>
+
+            <div class="form-group">
+                <label>2. Ou Coller les données (JSON ou Lignes CSV/Tabulation)</label>
+                <textarea id="importText" rows="6" placeholder='Format JSON : [{"company":"Brand A","name":"Jean Dupont","email":"a@a.com","phone":"+33612345678","country":"France","businessType":"Distributeur"}]'></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="closeImportModal()">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="processImport()">Lancer l'Importation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOTES CLIENT -->
+    <div class="modal-overlay" id="notesModal">
+        <div class="modal" style="max-width: 500px;">
+            <h2 id="notesModalTitle">Notes</h2>
+            <div id="notesList" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 320px; overflow-y: auto;"></div>
+            <div class="form-group">
+                <label>Ajouter une note</label>
+                <textarea id="newNoteText" rows="3" placeholder="Écrire une note sur ce client..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="closeNotesModal()">Fermer</button>
+                <button type="button" class="btn btn-primary" onclick="addNote()">➕ Ajouter la note</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOASTS -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        let clientsData = [];
+        let selectedClientIds = new Set();
+        let currentNotesClientId = null;
+
+        const COUNTRIES = [
+            {code:"AF",name:"Afghanistan",dial:"+93"},{code:"AL",name:"Albania",dial:"+355"},
+            {code:"DZ",name:"Algeria",dial:"+213"},{code:"AD",name:"Andorra",dial:"+376"},
+            {code:"AO",name:"Angola",dial:"+244"},{code:"AR",name:"Argentina",dial:"+54"},
+            {code:"AU",name:"Australia",dial:"+61"},{code:"AT",name:"Austria",dial:"+43"},
+            {code:"BE",name:"Belgium",dial:"+32"},{code:"BR",name:"Brazil",dial:"+55"},
+            {code:"CA",name:"Canada",dial:"+1"},{code:"CN",name:"China",dial:"+86"},
+            {code:"CO",name:"Colombia",dial:"+57"},{code:"DK",name:"Denmark",dial:"+45"},
+            {code:"EG",name:"Egypt",dial:"+20"},{code:"FI",name:"Finland",dial:"+358"},
+            {code:"FR",name:"France",dial:"+33"},{code:"DE",name:"Germany",dial:"+49"},
+            {code:"GR",name:"Greece",dial:"+30"},{code:"IN",name:"India",dial:"+91"},
+            {code:"ID",name:"Indonesia",dial:"+62"},{code:"IE",name:"Ireland",dial:"+353"},
+            {code:"IL",name:"Israel",dial:"+972"},{code:"IT",name:"Italy",dial:"+39"},
+            {code:"JP",name:"Japan",dial:"+81"},{code:"MX",name:"Mexico",dial:"+52"},
+            {code:"MA",name:"Morocco",dial:"+212"},{code:"NL",name:"Netherlands",dial:"+31"},
+            {code:"NO",name:"Norway",dial:"+47"},{code:"PL",name:"Poland",dial:"+48"},
+            {code:"PT",name:"Portugal",dial:"+351"},{code:"QA",name:"Qatar",dial:"+974"},
+            {code:"RO",name:"Romania",dial:"+40"},{code:"RU",name:"Russia",dial:"+7"},
+            {code:"SA",name:"Saudi Arabia",dial:"+966"},{code:"SG",name:"Singapore",dial:"+65"},
+            {code:"ZA",name:"South Africa",dial:"+27"},{code:"KR",name:"South Korea",dial:"+82"},
+            {code:"ES",name:"Spain",dial:"+34"},{code:"SE",name:"Sweden",dial:"+46"},
+            {code:"CH",name:"Switzerland",dial:"+41"},{code:"TN",name:"Tunisia",dial:"+216"},
+            {code:"TR",name:"Turkey",dial:"+90"},{code:"AE",name:"United Arab Emirates",dial:"+971"},
+            {code:"GB",name:"United Kingdom",dial:"+44"},{code:"US",name:"United States",dial:"+1"}
+        ];
+
+        function flagEmoji(iso) {
+            if (!iso) return '';
+            return iso.toUpperCase().replace(/./g, ch => String.fromCodePoint(127397 + ch.charCodeAt(0)));
+        }
+
+        function populateCountrySelects() {
+            const phoneSelect = document.getElementById('clientPhoneCode');
+            const countrySelect = document.getElementById('clientCountry');
+            phoneSelect.innerHTML = COUNTRIES.map(c =>
+                `<option value="${c.dial}">${flagEmoji(c.code)} ${c.name} (${c.dial})</option>`
+            ).join('');
+            countrySelect.innerHTML = `<option value="">— Sélectionner —</option>` + COUNTRIES.map(c =>
+                `<option value="${c.name}">${flagEmoji(c.code)} ${c.name}</option>`
+            ).join('');
+        }
+
+        function splitPhone(phone) {
+            if (!phone) return { code: '+33', number: '' };
+            const dials = COUNTRIES.map(c => c.dial).filter(d => phone.startsWith(d)).sort((a, b) => b.length - a.length);
+            if (dials.length) return { code: dials[0], number: phone.slice(dials[0].length).trim() };
+            return { code: '+33', number: phone };
+        }
+
+        function showToast(message, isError = false) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast' + (isError ? ' toast-danger' : '');
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px) scale(0.9)';
+                setTimeout(() => toast.remove(), 300);
+            }, 2800);
+        }
+
+        async function loadClients() {
+            try {
+                const res = await fetch('/api/crm/clients');
+                clientsData = await res.json();
+                renderClients(clientsData);
+            } catch (err) {
+                console.error("Erreur de chargement :", err);
+                showToast("Erreur lors du chargement des clients", true);
+            }
+        }
+
+        function renderClients(data) {
+            const tbody = document.getElementById('clientsTableBody');
+            tbody.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Aucun client trouvé</td></tr>`;
+                return;
+            }
+
+            data.forEach((client, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'client-clickable-row';
+                tr.style.animationDelay = `${(index % 10) * 0.05}s`;
+                tr.onclick = (e) => {
+                    // Ne pas ouvrir les notes si on clique sur la checkbox, le lien brand profile, ou les boutons d'actions
+                    if (e.target.closest('input') || e.target.closest('button') || e.target.closest('a')) return;
+                    openNotesModal(client.id);
+                };
+
+                const isChecked = selectedClientIds.has(client.id) ? 'checked' : '';
+                const brandFile = client.brandProfile && client.brandProfile.url
+                    ? `<a href="${client.brandProfile.url}" target="_blank" class="brand-profile-link"><i class="fa-solid fa-file-pdf"></i> Fichier</a>`
+                    : `<span style="color:var(--text-secondary); font-size:0.8rem;">Aucun</span>`;
+
+                let statusClass = 'status-prospect';
+                if (client.status === 'Actif') statusClass = 'status-active';
+                if (client.status === 'Inactif') statusClass = 'status-inactive';
+
+                const notesCount = client.notes ? client.notes.length : 0;
+
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="client-checkbox" value="${client.id}" ${isChecked} onchange="toggleClientSelection(this, '${client.id}')" style="accent-color: var(--accent-color); cursor: pointer;"></td>
+                    <td><strong>${client.name || '-'}</strong></td>
+                    <td style="color: var(--text-secondary);">${client.company || '-'}</td>
+                    <td>
+                        <div>${client.email || '-'}</div>
+                        <small style="color:var(--text-secondary);">${client.phone || '-'}</small>
+                    </td>
+                    <td>${client.country || '-'}</td>
+                    <td><span class="badge-status ${statusClass}">${client.status || 'Prospect'}</span></td>
+                    <td>
+                        <span class="notes-badge" onclick="event.stopPropagation(); openNotesModal('${client.id}')">
+                            <i class="fa-regular fa-comment-dots"></i> ${notesCount}
+                        </span>
+                    </td>
+                    <td>${brandFile}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn" style="padding: 0.35rem 0.6rem;" onclick="event.stopPropagation(); openEditClientModal('${client.id}')" title="Éditer"><i class="fa-solid fa-pen" style="font-size: 0.8rem;"></i></button>
+                            <button class="btn" style="padding: 0.35rem 0.6rem; border-color: var(--danger); color: var(--danger);" onclick="event.stopPropagation(); deleteClient('${client.id}')" title="Supprimer"><i class="fa-solid fa-trash" style="font-size: 0.8rem;"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleClientSelection(checkbox, id) {
+            if (checkbox.checked) selectedClientIds.add(id);
+            else selectedClientIds.delete(id);
+            updateBulkBar();
+        }
+
+        function toggleSelectAll(event, masterCheckbox) {
+            event.stopPropagation();
+            const checkboxes = document.querySelectorAll('.client-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = masterCheckbox.checked;
+                if (masterCheckbox.checked) selectedClientIds.add(cb.value);
+                else selectedClientIds.delete(cb.value);
+            });
+            updateBulkBar();
+        }
+
+        function clearSelection() {
+            selectedClientIds.clear();
+            document.getElementById('selectAllCheckbox').checked = false;
+            document.querySelectorAll('.client-checkbox').forEach(cb => cb.checked = false);
+            updateBulkBar();
+        }
+
+        function updateBulkBar() {
+            const bar = document.getElementById('bulkActionsBar');
+            document.getElementById('selectedCount').innerText = selectedClientIds.size;
+            if (selectedClientIds.size > 0) {
+                bar.style.display = 'flex';
+            } else {
+                bar.style.display = 'none';
+            }
+        }
+
+        // Modals Gestion Clients
+        function openAddClientModal() {
+            document.getElementById('modalTitle').innerText = "Nouveau Client";
+            document.getElementById('clientId').value = '';
+            document.getElementById('clientName').value = '';
+            document.getElementById('clientCompany').value = '';
+            document.getElementById('clientEmail').value = '';
+            document.getElementById('clientPhoneNumber').value = '';
+            document.getElementById('clientCountry').value = '';
+            document.getElementById('clientBusinessType').value = '';
+            document.getElementById('clientStatus').value = 'Prospect';
+            document.getElementById('clientBrandFile').value = '';
+            document.getElementById('currentBrandProfile').innerText = '';
+            document.getElementById('clientModal').classList.add('active');
+        }
+
+        function openEditClientModal(id) {
+            const client = clientsData.find(c => c.id === id);
+            if (!client) return;
+
+            document.getElementById('modalTitle').innerText = "Modifier le Client";
+            document.getElementById('clientId').value = client.id;
+            document.getElementById('clientName').value = client.name || '';
+            document.getElementById('clientCompany').value = client.company || '';
+            document.getElementById('clientEmail').value = client.email || '';
+            
+            const pSplit = splitPhone(client.phone);
+            document.getElementById('clientPhoneCode').value = pSplit.code;
+            document.getElementById('clientPhoneNumber').value = pSplit.number;
+
+            document.getElementById('clientCountry').value = client.country || '';
+            document.getElementById('clientBusinessType').value = client.businessType || '';
+            document.getElementById('clientStatus').value = client.status || 'Prospect';
+            document.getElementById('clientBrandFile').value = '';
+
+            const profileSmall = document.getElementById('currentBrandProfile');
+            if (client.brandProfile && client.brandProfile.url) {
+                profileSmall.innerHTML = `Fichier actuel : <a href="${client.brandProfile.url}" target="_blank" style="color:var(--accent-color)">Voir le fichier</a>`;
+            } else {
+                profileSmall.innerText = "Aucun fichier associé actuellement.";
+            }
+
+            document.getElementById('clientModal').classList.add('active');
+        }
+
+        function closeClientModal() {
+            document.getElementById('clientModal').classList.remove('active');
+        }
+
+        async function saveClient(event) {
+            event.preventDefault();
+            const id = document.getElementById('clientId').value;
+            const codeDial = document.getElementById('clientPhoneCode').value;
+            const rawNum = document.getElementById('clientPhoneNumber').value.trim();
+            const fullPhone = rawNum ? `${codeDial} ${rawNum}` : '';
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('clientName').value);
+            formData.append('company', document.getElementById('clientCompany').value);
+            formData.append('email', document.getElementById('clientEmail').value);
+            formData.append('phone', fullPhone);
+            formData.append('country', document.getElementById('clientCountry').value);
+            formData.append('businessType', document.getElementById('clientBusinessType').value);
+            formData.append('status', document.getElementById('clientStatus').value);
+
+            const fileInput = document.getElementById('clientBrandFile');
+            if (fileInput.files[0]) {
+                formData.append('brandProfile', fileInput.files[0]);
+            }
+
+            try {
+                const url = id ? `/api/crm/clients/${id}` : '/api/crm/clients';
+                const method = id ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method: method,
+                    body: formData
+                });
+
+                if (res.ok) {
+                    showToast(id ? "Client mis à jour avec succès" : "Client créé avec succès");
+                    closeClientModal();
+                    loadClients();
+                } else {
+                    showToast("Erreur lors de l'enregistrement", true);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Erreur réseau", true);
+            }
+        }
+
+        async function deleteClient(id) {
+            if (!confirm("Voulez-vous vraiment supprimer ce client ?")) return;
+            try {
+                const res = await fetch(`/api/crm/clients/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast("Client supprimé");
+                    selectedClientIds.delete(id);
+                    updateBulkBar();
+                    loadClients();
+                } else {
+                    showToast("Erreur lors de la suppression", true);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Erreur réseau", true);
+            }
+        }
+
+        async function bulkDeleteClients() {
+            if (!confirm(`Supprimer les ${selectedClientIds.size} clients sélectionnés ?`)) return;
+            try {
+                for (let id of selectedClientIds) {
+                    await fetch(`/api/crm/clients/${id}`, { method: 'DELETE' });
+                }
+                showToast("Sélection supprimée");
+                clearSelection();
+                loadClients();
+            } catch (err) {
+                console.error(err);
+                showToast("Erreur lors de la suppression groupée", true);
+            }
+        }
+
+        // Importation
+        function openImportModal() {
+            document.getElementById('importFile').value = '';
+            document.getElementById('importText').value = '';
+            document.getElementById('importModal').classList.add('active');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('active');
+        }
+
+        async function processImport() {
+            const textVal = document.getElementById('importText').value.trim();
+            const fileInput = document.getElementById('importFile');
+
+            if (fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.SheetNames[0];
+                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
+                    await sendImportRows(rows);
+                };
+                reader.readAsArrayBuffer(file);
+            } else if (textVal) {
+                try {
+                    let parsedData;
+                    if (textVal.startsWith('[')) {
+                        parsedData = JSON.parse(textVal);
+                    } else {
+                        parsedData = textVal.split('\n').map(line => line.split('\t'));
+                    }
+                    await sendImportRows(parsedData);
+                } catch(err) {
+                    showToast("Format de données invalide", true);
+                }
+            } else {
+                showToast("Veuillez fournir un fichier ou du texte", true);
+            }
+        }
+
+        async function sendImportRows(rowsData) {
+            try {
+                const res = await fetch('/api/crm/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: rowsData })
+                });
+                if (res.ok) {
+                    showToast("Importation réussie !");
+                    closeImportModal();
+                    loadClients();
+                } else {
+                    showToast("Erreur lors de l'importation", true);
+                }
+            } catch(err) {
+                showToast("Erreur réseau", true);
+            }
+        }
+
+        // Notes Modal
+        async function openNotesModal(clientId) {
+            currentNotesClientId = clientId;
+            const client = clientsData.find(c => c.id === clientId);
+            if (!client) return;
+
+            document.getElementById('notesModalTitle').innerText = `Notes - ${client.name || client.company || 'Client'}`;
+            renderNotesList(client.notes || []);
+            document.getElementById('newNoteText').value = '';
+            document.getElementById('notesModal').classList.add('active');
+        }
+
+        function closeNotesModal() {
+            document.getElementById('notesModal').classList.remove('active');
+            currentNotesClientId = null;
+        }
+
+        function renderNotesList(notes) {
+            const listDiv = document.getElementById('notesList');
+            if (!notes || notes.length === 0) {
+                listDiv.innerHTML = `<p style="color:var(--text-secondary); font-size:0.85rem; text-align:center; padding:1rem;">Aucune note pour le moment.</p>`;
+                return;
+            }
+            listDiv.innerHTML = notes.map((note, idx) => `
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); padding: 0.75rem; border-radius: var(--radius-md);">
+                    <p style="font-size: 0.85rem; white-space: pre-wrap;">${note.text || note}</p>
+                    <small style="color: var(--text-secondary); font-size: 0.75rem; display: block; margin-top: 0.3rem;">${note.date ? new Date(note.date).toLocaleString() : ''}</small>
+                </div>
+            `).join('');
+        }
+
+        async function addNote() {
+            const text = document.getElementById('newNoteText').value.trim();
+            if (!text || !currentNotesClientId) return;
+
+            try {
+                const res = await fetch(`/api/crm/clients/${currentNotesClientId}/notes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                if (res.ok) {
+                    showToast("Note ajoutée");
+                    document.getElementById('newNoteText').value = '';
+                    const clientRes = await fetch('/api/crm/clients');
+                    clientsData = await clientRes.json();
+                    const updatedClient = clientsData.find(c => c.id === currentNotesClientId);
+                    if (updatedClient) {
+                        renderNotesList(updatedClient.notes || []);
+                    }
+                    renderClients(clientsData);
+                } else {
+                    showToast("Erreur lors de l'ajout de la note", true);
+                }
+            } catch(err) {
+                showToast("Erreur réseau", true);
+            }
+        }
+
+        // Initialisation
+        populateCountrySelects();
+        loadClients();
+    </script>
+</body>
+</html>
