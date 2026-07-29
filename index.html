@@ -52,11 +52,6 @@
             100% { transform: scale(1); }
         }
 
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
         /* --- EN-TÊTE AVEC ANIMATION --- */
         header {
             display: flex;
@@ -315,10 +310,6 @@
                 border-radius: 16px;
             }
         }
-
-        @media (max-width: 400px) {
-            header h1 { font-size: 1.1rem; }
-        }
     </style>
 </head>
 <body>
@@ -381,7 +372,7 @@
             data.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.style.animationDelay = `${(index % 15) * 0.05}s`; // Animation fluide en cascade
+                card.style.animationDelay = `${(index % 15) * 0.05}s`;
 
                 let docsHTML = '';
                 const types = ['INCI', 'COA', 'MSDS'];
@@ -422,17 +413,27 @@
             renderCards(filtered);
         }
 
-        // Gestion de la sélection par carte
+        // Gestion de la sélection par carte (version sécurisée)
         function toggleCardSelection(checkbox, perfumeName) {
             const card = checkbox.closest('.card');
             const perfume = perfumesData.find(p => p.name === perfumeName);
 
+            if (!perfume || !perfume.files) return;
+
             if (checkbox.checked) {
                 card.classList.add('selected');
-                Object.values(perfume.files).forEach(f => selectedFiles.add(f.path));
+                Object.values(perfume.files).forEach(f => {
+                    if (f && f.path) {
+                        selectedFiles.add(f.path);
+                    }
+                });
             } else {
                 card.classList.remove('selected');
-                Object.values(perfume.files).forEach(f => selectedFiles.delete(f.path));
+                Object.values(perfume.files).forEach(f => {
+                    if (f && f.path) {
+                        selectedFiles.delete(f.path);
+                    }
+                });
             }
             updateFloatingBar();
         }
