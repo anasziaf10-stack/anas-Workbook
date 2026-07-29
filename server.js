@@ -37,25 +37,49 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // --- ROUTE DE DIAGNOSTIC SUPABASE (temporaire) ---
-app.get('/api/debug-supabase', async (req, res) => {
-    try {
-        const { data, error } = await supabase.from('clients').select('*').limit(1);
-        if (error) throw error;
-        res.json({ success: true, data });
-    } catch (e) {
-        res.json({
-            success: false,
-            message: e.message,
-            cause: e.cause ? {
-                message: e.cause.message,
-                code: e.cause.code,
-                name: e.cause.name
-            } : null,
-            stack: e.stack
-        });
-    }
-});
+// --- ROUTE DE DIAGNOSTIC RÉSEAU (temporaire) ---
+app.get('/api/debug-network', async (req, res) => {
+    const results = {
+        nodeVersion: process.version,
+        hasGlobalFetch: typeof fetch !== 'undefined',
+        tests: {}
+    };
 
+    try {
+        const r = await fetch(supabaseUrl + '/rest/v1/', {
+            headers: { apikey: supabaseKey }
+        });
+        results.tests.rawFetchToSupabase = { status: r.status, ok: r.ok };
+    } catch (err) {
+        results.tests.rawFetchToSupabase = {
+            error: err.message,
+            cause: err.cause ? String(err.cause) : null,
+            causeCode: err.cause && err.cause.code ? err.cause.code : null
+        };
+    }
+
+    try {
+        const r2 = await fetch('https://www.google.com');
+        results.tests.rawFetchToGoogle = { status: r2.status, ok: r2.ok };
+    } catch (err) {
+        results.tests.rawFetchToGoogle = {
+            error: err.message,
+            cause: err.cause ? String(err.cause) : null,
+            causeCode: err.cause && err.cause.code ? err.cause.code : null
+        };
+    }
+
+    try {
+        const dns = require('dns').promises;
+        const host = new URL(supabaseUrl).hostname;
+        const addresses = await dns.lookup(host, { all: true });
+        results.tests.dnsLookup = addresses;
+    } catch (err) {
+        results.tests.dnsLookup = { error: err.message, code: err.code };
+    }
+
+    res.json(results);
+});
 // --- ROUTE POUR INJECTER UN CSS CORRECTIF (CONTRASTE MENU TÉLÉPHONE / PAYS) ---
 app.get('/css/fix-dropdown.css', (req, res) => {
     res.setHeader('Content-Type', 'text/css');
