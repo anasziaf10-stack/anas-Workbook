@@ -11,7 +11,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 // --- CONFIGURATION SUPABASE ---
 const supabaseUrl = 'https://ucyakopdwvinspnflfns.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjeWFrb3Bkd3ZpbnNwbmZsZm5zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NTMzNTgyMywiZXhwIjoyMTAwOTExODIzfQ.gFX8320QdN9t7XTXBa5z7_I1MyuNTzS0BMWNFCrjO1I';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjeWFrb3Bkd3ZpbnNwbmZsfnsiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNzg1MzM1ODIzLCJleHAiOjIxMDA5MTE4MjN9.gFX8320QdN9t7XTXBa5z7_I1MyuNTzS0BMWNFCrjO1I';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // --- PARSER PDF ---
@@ -36,7 +36,6 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// --- ROUTE DE DIAGNOSTIC SUPABASE (temporaire) ---
 // --- ROUTE DE DIAGNOSTIC RÉSEAU (temporaire) ---
 app.get('/api/debug-network', async (req, res) => {
     const results = {
@@ -80,6 +79,7 @@ app.get('/api/debug-network', async (req, res) => {
 
     res.json(results);
 });
+
 // --- ROUTE POUR INJECTER UN CSS CORRECTIF (CONTRASTE MENU TÉLÉPHONE / PAYS) ---
 app.get('/css/fix-dropdown.css', (req, res) => {
     res.setHeader('Content-Type', 'text/css');
