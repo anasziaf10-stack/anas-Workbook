@@ -229,15 +229,23 @@ async function generateReportData() {
 // --- FONCTIONS UTILITAIRES CRM ---
 function getClients() {
     try {
+        if (!fs.existsSync(CLIENTS_FILE)) return [];
         const data = fs.readFileSync(CLIENTS_FILE, 'utf8');
         return JSON.parse(data);
     } catch (e) {
+        console.error("Erreur lecture clients.json:", e);
         return [];
     }
 }
 
 function saveClients(clients) {
-    fs.writeFileSync(CLIENTS_FILE, JSON.stringify(clients, null, 2));
+    try {
+        fs.writeFileSync(CLIENTS_FILE, JSON.stringify(clients, null, 2), 'utf8');
+        return true;
+    } catch (e) {
+        console.error("Erreur écriture clients.json:", e);
+        return false;
+    }
 }
 
 // --- ENDPOINTS FICHIERS & RAPPORTS ---
@@ -443,95 +451,166 @@ app.get('/api/crm/clients', (req, res) => {
 
 // 2. Ajouter un client
 app.post('/api/crm/clients', (req, res) => {
-    const clients = getClients();
-    const newClient = {
-        id: Date.now().toString(),
-        name: req.body.name || 'Sans Nom',
-        company: req.body.company || '',
-        email: req.body.email || '',
-        phone: req.body.phone || '',
-        status: req.body.status || 'Prospect',
-        brandProfile: req.body.brandProfile || null,
-        notes: req.body.notes || '',
-        createdAt: new Date().toISOString()
-    };
-    clients.push(newClient);
-    saveClients(clients);
-    res.json({ success: true, client: newClient });
+    try {
+        const clients = getClients();
+        const newClient = {
+            id: Date.now().toString(),
+            name: req.body.name || 'Sans Nom',
+            company: req.body.company || '',
+            email: req.body.email || '',
+            phone: req.body.phone || '',
+            status: req.body.status || 'Prospect',
+            brandProfile: req.body.brandProfile || null,
+            notes: Array.isArray(req.body.notes) ? req.body.notes : [],
+            createdAt: new Date().toISOString()
+        };
+        clients.push(newClient);
+        if (saveClients(clients)) {
+            res.json({ success: true, client: newClient });
+        } else {
+            res.status(500).json({ error: "Erreur écriture fichier" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// 2.5. Ajouter une note à un client spécifique
+app.post('/api/crm/clients/:id/notes', (req, res) => {
+    try {
+        let clients = getClients();
+        const client = clients.find(c => c.id === req.params.id);
+        if (!client) return res.status(404).json({ error: "Client introuvable" });
+
+        if (!Array.isArray(client.notes)) {
+            client.notes = [];
+        }
+
+        const newNote = {
+            id: Date.now().toString(),
+            text: req.body.text || req.body.note || '',
+            createdAt: new Date().toISOString()
+        };
+
+        client.notes.push(newNote);
+        if (saveClients(clients)) {
+            res.json({ success: true, client, note: newNote });
+        } else {
+            res.status(500).json({ error: "Erreur écriture fichier" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // 3. Mettre à jour un client
 app.put('/api/crm/clients/:id', (req, res) => {
-    let clients = getClients();
-    const index = clients.findIndex(c => c.id === req.params.id);
+    try {
+        let clients = getClients();
+        const index = clients.findIndex(c => c.id === req.params.id);
     if (index === -1) return res.status(404).json({ error: "Client introuvable" });
 
-    clients[index] = { ...clients[index], ...req.body };
-    saveClients(clients);
-    res.json({ success: true, client: clients[index] });
+        clients[index] = {
+            ...clients[index],
+            name: req.body.name !== undefined ? req.body.name : clients[index].name,
+            company: req.body.company !== undefined ? req.body.company : clients[index].company,
+            email: req.body.email !== undefined ? req.body.email : clients[index].email,
+            phone: req.body.phone !== undefined ? req.body.phone : clients[index].phone,
+            status: req.body.status !== undefined ? req.body.status : clients[index].status,
+            notes: req.body.notes !== undefined ? req.body.notes : clients[index].notes
+        };
+
+        if (saveClients(clients)) {
+            res.json({ success: true, client: clients[index] });
+        } else {
+            res.status(500).json({ error: "Erreur d'enregistrement dans le fichier" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // 4. Supprimer un client
 app.delete('/api/crm/clients/:id', (req, res) => {
-    let clients = getClients();
-    clients = clients.filter(c => c.id !== req.params.id);
-    saveClients(clients);
-    res.json({ success: true });
+    try {
+        let clients = getClients();
+        clients = clients.filter(c => c.id !== req.params.id);
+        if (saveClients(clients)) {
+            res.json({ success: true });
+        } else {
+            res.status(500).json({ error: "Erreur écriture fichier" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // 5. Upload Brand Profile pour un client spécifique
 app.post('/api/crm/upload-brand-profile/:clientId', upload.single('brandProfile'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: "Aucun fichier fourni" });
+    try {
+        if (!req.file) return res.status(400).json({ error: "Aucun fichier fourni" });
 
-    let clients = getClients();
-    const client = clients.find(c => c.id === req.params.clientId);
-    if (!client) return res.status(404).json({ error: "Client non trouvé" });
+        let clients = getClients();
+        const client = clients.find(c => c.id === req.params.clientId);
+        if (!client) return res.status(404).json({ error: "Client non trouvé" });
 
-    const fileData = {
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        url: `/download?path=${encodeURIComponent(req.file.path)}`
-    };
+        const fileData = {
+            filename: req.file.filename,
+            originalName: req.file.originalname,
+            url: `/download?path=${encodeURIComponent(req.file.path)}`
+        };
 
-    client.brandProfile = fileData;
-    saveClients(clients);
-
-    res.json({ success: true, brandProfile: fileData });
+        client.brandProfile = fileData;
+        if (saveClients(clients)) {
+            res.json({ success: true, brandProfile: fileData });
+        } else {
+            res.status(500).json({ error: "Erreur écriture fichier" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // 6. Importation massive de clients
 app.post('/api/crm/import-clients', (req, res) => {
-    const { clientsList } = req.body;
-    if (!Array.isArray(clientsList) || clientsList.length === 0) {
-        return res.status(400).json({ error: "Format invalide ou tableau vide" });
-    }
-
-    const currentClients = getClients();
-    let importedCount = 0;
-
-    clientsList.forEach(item => {
-        if (item.name || item.company) {
-            currentClients.push({
-                id: (Date.now() + Math.random()).toString(),
-                name: item.name || item.company || 'Inconnu',
-                company: item.company || '',
-                email: item.email || '',
-                phone: item.phone || '',
-                status: item.status || 'Prospect',
-                brandProfile: null,
-                notes: item.notes || 'Importé par lot',
-                createdAt: new Date().toISOString()
-            });
-            importedCount++;
+    try {
+        const { clientsList } = req.body;
+        if (!Array.isArray(clientsList) || clientsList.length === 0) {
+            return res.status(400).json({ error: "Format invalide ou tableau vide" });
         }
-    });
 
-    saveClients(currentClients);
-    res.json({ success: true, count: importedCount });
+        const currentClients = getClients();
+        let importedCount = 0;
+
+        clientsList.forEach(item => {
+            if (item.name || item.company) {
+                currentClients.push({
+                    id: (Date.now() + Math.random()).toString(),
+                    name: item.name || item.company || 'Inconnu',
+                    company: item.company || '',
+                    email: item.email || '',
+                    phone: item.phone || '',
+                    status: item.status || 'Prospect',
+                    brandProfile: null,
+                    notes: [],
+                    createdAt: new Date().toISOString()
+                });
+                importedCount++;
+            }
+        });
+
+        if (saveClients(currentClients)) {
+            res.json({ success: true, count: importedCount });
+        } else {
+            res.status(500).json({ error: "Erreur écriture fichier" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
-// --- DÉMARRAGE DU SERVEUR ---
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Anas Workbook prêt sur http://localhost:${PORT}`);
+// --- DÉMARRAGE DU SERVEUR (Compatible Render & Local) ---
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Anas Workbook prêt sur le port ${PORT}`);
 });
