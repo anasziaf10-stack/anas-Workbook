@@ -4,12 +4,18 @@
     "name": "Debora",
     "company": "Beauty points",
     "email": "Deborabrahimaj17@gmail.com",
-    "phone": "00355692097037",
+    "phone": "+355 692097037",
     "country": "Albania",
     "businessType": "",
     "status": "Prospect",
     "brandProfile": null,
-    "notes": [],
+    "notes": [
+      {
+        "id": "1785317764314",
+        "text": "Sent a follow-up email to remind her that we are still waiting for her company profile.",
+        "createdAt": "2026-07-29T09:36:04.314Z"
+      }
+    ],
     "createdAt": "2026-07-28T10:05:43.580Z"
   },
   {
@@ -17,25 +23,37 @@
     "name": "Marie Noelle Khattar",
     "company": "Marie Noelle Khattar",
     "email": "marienoellekhattar@gmail.com",
-    "phone": "0054 91140711331",
+    "phone": "+54 91140711331",
     "country": "Argentina",
     "businessType": "",
     "status": "Prospect",
     "brandProfile": null,
-    "notes": [],
+    "notes": [
+      {
+        "id": "1785317874049",
+        "text": "Get a meeting with Ashique and he told me that she is thinking about openning a store in the futur",
+        "createdAt": "2026-07-29T09:37:54.049Z"
+      }
+    ],
     "createdAt": "2026-07-28T10:05:43.580Z"
   },
   {
     "id": "1785233143580.583",
     "name": "Huda",
     "company": "Niche scents",
-    "email": "x",
-    "phone": "0061402435510",
-    "country": "Austraillia",
+    "email": "",
+    "phone": "+61 402435510",
+    "country": "Australia",
     "businessType": "",
     "status": "Prospect",
     "brandProfile": null,
-    "notes": [],
+    "notes": [
+      {
+        "id": "1785319804028",
+        "text": "I sent to her a reminder on WP",
+        "createdAt": "2026-07-29T10:10:04.028Z"
+      }
+    ],
     "createdAt": "2026-07-28T10:05:43.580Z"
   },
   {
@@ -43,25 +61,37 @@
     "name": "Khaled",
     "company": "Parfum City",
     "email": "Teymur.a@parfumcity.az",
-    "phone": "00994502214101",
+    "phone": "+994 502214101",
     "country": "Azerbaijan",
     "businessType": "",
-    "status": "Prospect",
+    "status": "Inactif",
     "brandProfile": null,
-    "notes": [],
+    "notes": [
+      {
+        "id": "1785319859943",
+        "text": "no longer need a collaboration because of his companies new priorities",
+        "createdAt": "2026-07-29T10:10:59.943Z"
+      }
+    ],
     "createdAt": "2026-07-28T10:05:43.580Z"
   },
   {
     "id": "1785233143580.5042",
-    "name": "x",
+    "name": "-",
     "company": "la boutique",
-    "email": "x",
-    "phone": "0033677320190",
+    "email": "",
+    "phone": "+33 677320190",
     "country": "Belgium",
     "businessType": "",
     "status": "Prospect",
     "brandProfile": null,
-    "notes": [],
+    "notes": [
+      {
+        "id": "1785320106843",
+        "text": "Sent to him a reminder on WP",
+        "createdAt": "2026-07-29T10:15:06.843Z"
+      }
+    ],
     "createdAt": "2026-07-28T10:05:43.580Z"
   },
   {
@@ -69,13 +99,20 @@
     "name": "Svetlana",
     "company": "Cravt",
     "email": "Yakubenko.s@cravt.by",
-    "phone": "00375172586011 -00375296365484",
-    "country": "Bilaruss",
+    "phone": "+375 5172586011",
+    "country": "Belarus",
     "businessType": "",
     "status": "Prospect",
     "brandProfile": null,
-    "notes": [],
-    "createdAt": "2026-07-28T10:05:43.580Z"
+    "notes": [
+      {
+        "id": "1785320467503",
+        "text": "Waiting Yasser",
+        "createdAt": "2026-07-29T10:21:07.503Z"
+      }
+    ],
+    "createdAt": "2026-07-28T10:05:43.580Z",
+    "phone2": "+375 296365484"
   },
   {
     "id": "1785233143580.3223",
