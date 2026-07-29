@@ -320,6 +320,69 @@
             gap: 0.75rem;
             margin-top: 1rem;
         }
+
+        /* --- RESPONSIVE MOBILE --- */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1.25rem;
+                gap: 1rem;
+            }
+
+            header h1 { font-size: 1.4rem; }
+
+            .header-actions {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .header-actions .btn {
+                flex: 1 1 calc(50% - 0.375rem);
+                justify-content: center;
+                font-size: 0.75rem;
+                padding: 0.6rem 0.7rem;
+                text-align: center;
+            }
+
+            #bulkActionsBar {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 0.6rem;
+            }
+
+            .table-card {
+                padding: 1rem;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table { font-size: 0.8rem; }
+
+            th, td {
+                padding: 0.6rem 0.75rem;
+                white-space: nowrap;
+            }
+
+            .modal {
+                max-width: 92vw;
+                padding: 1.25rem;
+                max-height: 88vh;
+                overflow-y: auto;
+            }
+
+            #clientForm > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            #phone2Spacer { display: none; }
+        }
+
+        @media (max-width: 420px) {
+            header h1 { font-size: 1.2rem; }
+            .header-actions .btn { flex: 1 1 100%; }
+        }
     </style>
 </head>
 <body class="page-fade-in">
@@ -400,7 +463,7 @@
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group"></div>
+                    <div class="form-group" id="phone2Spacer"></div>
                     <div class="form-group">
                         <label>Téléphone secondaire</label>
                         <div style="display: flex; gap: 0.5rem;">
@@ -494,202 +557,30 @@
         let currentNotesClientId = null;
 
         const COUNTRIES = [
-    {name:"Afghanistan",dial:"+93"},
-    {name:"Albania",dial:"+355"},
-    {name:"Algeria",dial:"+213"},
-    {name:"Andorra",dial:"+376"},
-    {name:"Angola",dial:"+244"},
-    {name:"Antigua and Barbuda",dial:"+1-268"},
-    {name:"Argentina",dial:"+54"},
-    {name:"Armenia",dial:"+374"},
-    {name:"Australia",dial:"+61"},
-    {name:"Austria",dial:"+43"},
-    {name:"Azerbaijan",dial:"+994"},
-    {name:"Bahamas",dial:"+1-242"},
-    {name:"Bahrain",dial:"+973"},
-    {name:"Bangladesh",dial:"+880"},
-    {name:"Barbados",dial:"+1-246"},
-    {name:"Belarus",dial:"+375"},
-    {name:"Belgium",dial:"+32"},
-    {name:"Belize",dial:"+501"},
-    {name:"Benin",dial:"+229"},
-    {name:"Bhutan",dial:"+975"},
-    {name:"Bolivia",dial:"+591"},
-    {name:"Bosnia and Herzegovina",dial:"+387"},
-    {name:"Botswana",dial:"+267"},
-    {name:"Brazil",dial:"+55"},
-    {name:"Brunei",dial:"+673"},
-    {name:"Bulgaria",dial:"+359"},
-    {name:"Burkina Faso",dial:"+226"},
-    {name:"Burundi",dial:"+257"},
-    {name:"Cabo Verde",dial:"+238"},
-    {name:"Cambodia",dial:"+855"},
-    {name:"Cameroon",dial:"+237"},
-    {name:"Canada",dial:"+1"},
-    {name:"Central African Republic",dial:"+236"},
-    {name:"Chad",dial:"+235"},
-    {name:"Chile",dial:"+56"},
-    {name:"China",dial:"+86"},
-    {name:"Colombia",dial:"+57"},
-    {name:"Comoros",dial:"+269"},
-    {name:"Congo",dial:"+242"},
-    {name:"Congo (Democratic Republic)",dial:"+243"},
-    {name:"Costa Rica",dial:"+506"},
-    {name:"Côte d'Ivoire",dial:"+225"},
-    {name:"Croatia",dial:"+385"},
-    {name:"Cuba",dial:"+53"},
-    {name:"Cyprus",dial:"+357"},
-    {name:"Czech Republic",dial:"+420"},
-    {name:"Denmark",dial:"+45"},
-    {name:"Djibouti",dial:"+253"},
-    {name:"Dominica",dial:"+1-767"},
-    {name:"Dominican Republic",dial:"+1-809"},
-    {name:"Ecuador",dial:"+593"},
-    {name:"Egypt",dial:"+20"},
-    {name:"El Salvador",dial:"+503"},
-    {name:"Equatorial Guinea",dial:"+240"},
-    {name:"Eritrea",dial:"+291"},
-    {name:"Estonia",dial:"+372"},
-    {name:"Eswatini",dial:"+268"},
-    {name:"Ethiopia",dial:"+251"},
-    {name:"Fiji",dial:"+679"},
-    {name:"Finland",dial:"+358"},
-    {name:"France",dial:"+33"},
-    {name:"Gabon",dial:"+241"},
-    {name:"Gambia",dial:"+220"},
-    {name:"Georgia",dial:"+995"},
-    {name:"Germany",dial:"+49"},
-    {name:"Ghana",dial:"+233"},
-    {name:"Greece",dial:"+30"},
-    {name:"Grenada",dial:"+1-473"},
-    {name:"Guatemala",dial:"+502"},
-    {name:"Guinea",dial:"+224"},
-    {name:"Guinea-Bissau",dial:"+245"},
-    {name:"Guyana",dial:"+592"},
-    {name:"Haiti",dial:"+509"},
-    {name:"Honduras",dial:"+504"},
-    {name:"Hungary",dial:"+36"},
-    {name:"Iceland",dial:"+354"},
-    {name:"India",dial:"+91"},
-    {name:"Indonesia",dial:"+62"},
-    {name:"Iran",dial:"+98"},
-    {name:"Iraq",dial:"+964"},
-    {name:"Ireland",dial:"+353"},
-    {name:"Italy",dial:"+39"},
-    {name:"Jamaica",dial:"+1-876"},
-    {name:"Japan",dial:"+81"},
-    {name:"Jordan",dial:"+962"},
-    {name:"Kazakhstan",dial:"+7"},
-    {name:"Kenya",dial:"+254"},
-    {name:"Kiribati",dial:"+686"},
-    {name:"North Korea",dial:"+850"},
-    {name:"South Korea",dial:"+82"},
-    {name:"Kuwait",dial:"+965"},
-    {name:"Kyrgyzstan",dial:"+996"},
-    {name:"Laos",dial:"+856"},
-    {name:"Latvia",dial:"+371"},
-    {name:"Lebanon",dial:"+961"},
-    {name:"Lesotho",dial:"+266"},
-    {name:"Liberia",dial:"+231"},
-    {name:"Libya",dial:"+218"},
-    {name:"Liechtenstein",dial:"+423"},
-    {name:"Lithuania",dial:"+370"},
-    {name:"Luxembourg",dial:"+352"},
-    {name:"Madagascar",dial:"+261"},
-    {name:"Malawi",dial:"+265"},
-    {name:"Malaysia",dial:"+60"},
-    {name:"Maldives",dial:"+960"},
-    {name:"Mali",dial:"+223"},
-    {name:"Malta",dial:"+356"},
-    {name:"Marshall Islands",dial:"+692"},
-    {name:"Mauritania",dial:"+222"},
-    {name:"Mauritius",dial:"+230"},
-    {name:"Mexico",dial:"+52"},
-    {name:"Micronesia",dial:"+691"},
-    {name:"Moldova",dial:"+373"},
-    {name:"Monaco",dial:"+377"},
-    {name:"Mongolia",dial:"+976"},
-    {name:"Montenegro",dial:"+382"},
-    {name:"Morocco",dial:"+212"},
-    {name:"Mozambique",dial:"+258"},
-    {name:"Myanmar",dial:"+95"},
-    {name:"Namibia",dial:"+264"},
-    {name:"Nauru",dial:"+674"},
-    {name:"Nepal",dial:"+977"},
-    {name:"Netherlands",dial:"+31"},
-    {name:"New Zealand",dial:"+64"},
-    {name:"Nicaragua",dial:"+505"},
-    {name:"Niger",dial:"+227"},
-    {name:"Nigeria",dial:"+234"},
-    {name:"North Macedonia",dial:"+389"},
-    {name:"Norway",dial:"+47"},
-    {name:"Oman",dial:"+968"},
-    {name:"Pakistan",dial:"+92"},
-    {name:"Palau",dial:"+680"},
-    {name:"Palestine",dial:"+970"},
-    {name:"Panama",dial:"+507"},
-    {name:"Papua New Guinea",dial:"+675"},
-    {name:"Paraguay",dial:"+595"},
-    {name:"Peru",dial:"+51"},
-    {name:"Philippines",dial:"+63"},
-    {name:"Poland",dial:"+48"},
-    {name:"Portugal",dial:"+351"},
-    {name:"Qatar",dial:"+974"},
-    {name:"Romania",dial:"+40"},
-    {name:"Russia",dial:"+7"},
-    {name:"Rwanda",dial:"+250"},
-    {name:"Saint Kitts and Nevis",dial:"+1-869"},
-    {name:"Saint Lucia",dial:"+1-758"},
-    {name:"Saint Vincent and the Grenadines",dial:"+1-784"},
-    {name:"Samoa",dial:"+685"},
-    {name:"San Marino",dial:"+378"},
-    {name:"Sao Tome and Principe",dial:"+239"},
-    {name:"Saudi Arabia",dial:"+966"},
-    {name:"Senegal",dial:"+221"},
-    {name:"Serbia",dial:"+381"},
-    {name:"Seychelles",dial:"+248"},
-    {name:"Sierra Leone",dial:"+232"},
-    {name:"Singapore",dial:"+65"},
-    {name:"Slovakia",dial:"+421"},
-    {name:"Slovenia",dial:"+386"},
-    {name:"Solomon Islands",dial:"+677"},
-    {name:"Somalia",dial:"+252"},
-    {name:"South Africa",dial:"+27"},
-    {name:"South Sudan",dial:"+211"},
-    {name:"Spain",dial:"+34"},
-    {name:"Sri Lanka",dial:"+94"},
-    {name:"Sudan",dial:"+249"},
-    {name:"Suriname",dial:"+597"},
-    {name:"Sweden",dial:"+46"},
-    {name:"Switzerland",dial:"+41"},
-    {name:"Syria",dial:"+963"},
-    {name:"Taiwan",dial:"+886"},
-    {name:"Tajikistan",dial:"+992"},
-    {name:"Tanzania",dial:"+255"},
-    {name:"Thailand",dial:"+66"},
-    {name:"Timor-Leste",dial:"+670"},
-    {name:"Togo",dial:"+228"},
-    {name:"Tonga",dial:"+676"},
-    {name:"Trinidad and Tobago",dial:"+1-868"},
-    {name:"Tunisia",dial:"+216"},
-    {name:"Turkey",dial:"+90"},
-    {name:"Turkmenistan",dial:"+993"},
-    {name:"Tuvalu",dial:"+688"},
-    {name:"Uganda",dial:"+256"},
-    {name:"Ukraine",dial:"+380"},
-    {name:"United Arab Emirates",dial:"+971"},
-    {name:"United Kingdom",dial:"+44"},
-    {name:"United States",dial:"+1"},
-    {name:"Uruguay",dial:"+598"},
-    {name:"Uzbekistan",dial:"+998"},
-    {name:"Vanuatu",dial:"+678"},
-    {name:"Vatican City",dial:"+379"},
-    {name:"Venezuela",dial:"+58"},
-    {name:"Vietnam",dial:"+84"},
-    {name:"Yemen",dial:"+967"},
-    {name:"Zambia",dial:"+260"},
-    {name:"Zimbabwe",dial:"+263"}
-];
+            {code:"AF",name:"Afghanistan",dial:"+93"},{code:"AL",name:"Albania",dial:"+355"},
+            {code:"DZ",name:"Algeria",dial:"+213"},{code:"AD",name:"Andorra",dial:"+376"},
+            {code:"AO",name:"Angola",dial:"+244"},{code:"AR",name:"Argentina",dial:"+54"},
+            {code:"AU",name:"Australia",dial:"+61"},{code:"AT",name:"Austria",dial:"+43"},
+            {code:"BE",name:"Belgium",dial:"+32"},{code:"BR",name:"Brazil",dial:"+55"},
+            {code:"CA",name:"Canada",dial:"+1"},{code:"CN",name:"China",dial:"+86"},
+            {code:"CO",name:"Colombia",dial:"+57"},{code:"DK",name:"Denmark",dial:"+45"},
+            {code:"EG",name:"Egypt",dial:"+20"},{code:"FI",name:"Finland",dial:"+358"},
+            {code:"FR",name:"France",dial:"+33"},{code:"DE",name:"Germany",dial:"+49"},
+            {code:"GR",name:"Greece",dial:"+30"},{code:"IN",name:"India",dial:"+91"},
+            {code:"ID",name:"Indonesia",dial:"+62"},{code:"IE",name:"Ireland",dial:"+353"},
+            {code:"IL",name:"Israel",dial:"+972"},{code:"IT",name:"Italy",dial:"+39"},
+            {code:"JP",name:"Japan",dial:"+81"},{code:"MX",name:"Mexico",dial:"+52"},
+            {code:"MA",name:"Morocco",dial:"+212"},{code:"NL",name:"Netherlands",dial:"+31"},
+            {code:"NO",name:"Norway",dial:"+47"},{code:"PL",name:"Poland",dial:"+48"},
+            {code:"PT",name:"Portugal",dial:"+351"},{code:"QA",name:"Qatar",dial:"+974"},
+            {code:"RO",name:"Romania",dial:"+40"},{code:"RU",name:"Russia",dial:"+7"},
+            {code:"SA",name:"Saudi Arabia",dial:"+966"},{code:"SG",name:"Singapore",dial:"+65"},
+            {code:"ZA",name:"South Africa",dial:"+27"},{code:"KR",name:"South Korea",dial:"+82"},
+            {code:"ES",name:"Spain",dial:"+34"},{code:"SE",name:"Sweden",dial:"+46"},
+            {code:"CH",name:"Switzerland",dial:"+41"},{code:"TN",name:"Tunisia",dial:"+216"},
+            {code:"TR",name:"Turkey",dial:"+90"},{code:"AE",name:"United Arab Emirates",dial:"+971"},
+            {code:"GB",name:"United Kingdom",dial:"+44"},{code:"US",name:"United States",dial:"+1"}
+        ];
 
         function flagEmoji(iso) {
             if (!iso) return '';
@@ -1065,7 +956,7 @@
             listDiv.innerHTML = notes.map((note, idx) => `
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); padding: 0.75rem; border-radius: var(--radius-md);">
                     <p style="font-size: 0.85rem; white-space: pre-wrap;">${note.text || note}</p>
-                    <small style="color: var(--text-secondary); font-size: 0.75rem; display: block; margin-top: 0.3rem;">${note.date ? new Date(note.date).toLocaleString() : ''}</small>
+                    <small style="color: var(--text-secondary); font-size: 0.75rem; display: block; margin-top: 0.3rem;">${note.createdAt ? new Date(note.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</small>
                 </div>
             `).join('');
         }
