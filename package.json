@@ -1,12 +1,19 @@
 {
+  "name": "anas-workbook",
+  "version": "1.0.0",
+  "description": "Anas Workbook CRM",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
-    "archiver": "^7.0.1",
-    "docx": "^9.7.1",
+    "@supabase/supabase-js": "^2.39.0",
+    "archiver": "^6.0.1",
+    "docx": "^8.5.0",
     "exceljs": "^4.4.0",
-    "express": "^5.2.1",
-    "multer": "^2.2.0",
-    "node.js": "^0.0.1-security",
-    "pdf-parse": "^2.4.5",
-    "pdfkit": "^0.19.1"
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "pdf-parse": "^1.1.1",
+    "pdfkit": "^0.14.0"
   }
 }
