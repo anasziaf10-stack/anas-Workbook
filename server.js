@@ -9,26 +9,6 @@ const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType } = r
 const PDFDocument = require('pdfkit');
 const { createClient } = require('@supabase/supabase-js');
 
-// --- ROUTE DE DIAGNOSTIC SUPABASE (temporaire) ---
-app.get('/api/debug-supabase', async (req, res) => {
-    try {
-        const { data, error } = await supabase.from('clients').select('*').limit(1);
-        if (error) throw error;
-        res.json({ success: true, data });
-    } catch (e) {
-        res.json({
-            success: false,
-            message: e.message,
-            cause: e.cause ? {
-                message: e.cause.message,
-                code: e.cause.code,
-                name: e.cause.name
-            } : null,
-            stack: e.stack
-        });
-    }
-});
-
 // --- CONFIGURATION SUPABASE ---
 const supabaseUrl = 'https://ucyakopdwvinspmflfns.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjeWFrb3Bkd3ZpbnNwbmZsZm5zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NTMzNTgyMywiZXhwIjoyMTAwOTExODIzfQ.gFX8320QdN9t7XTXBa5z7_I1MyuNTzS0BMWNFCrjO1I';
@@ -55,6 +35,26 @@ async function parsePdfBuffer(buffer) {
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// --- ROUTE DE DIAGNOSTIC SUPABASE (temporaire) ---
+app.get('/api/debug-supabase', async (req, res) => {
+    try {
+        const { data, error } = await supabase.from('clients').select('*').limit(1);
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (e) {
+        res.json({
+            success: false,
+            message: e.message,
+            cause: e.cause ? {
+                message: e.cause.message,
+                code: e.cause.code,
+                name: e.cause.name
+            } : null,
+            stack: e.stack
+        });
+    }
+});
 
 // --- ROUTE POUR INJECTER UN CSS CORRECTIF (CONTRASTE MENU TÉLÉPHONE / PAYS) ---
 app.get('/css/fix-dropdown.css', (req, res) => {
