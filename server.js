@@ -10,7 +10,7 @@ const PDFDocument = require('pdfkit');
 const { createClient } = require('@supabase/supabase-js');
 
 // --- CONFIGURATION SUPABASE ---
-const supabaseUrl = 'https://ucyakopdwvinspmflfns.supabase.co';
+const supabaseUrl = 'https://ucyakopdwvinspnflfns.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjeWFrb3Bkd3ZpbnNwbmZsZm5zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NTMzNTgyMywiZXhwIjoyMTAwOTExODIzfQ.gFX8320QdN9t7XTXBa5z7_I1MyuNTzS0BMWNFCrjO1I';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
