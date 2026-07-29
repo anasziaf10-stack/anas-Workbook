@@ -449,18 +449,26 @@ app.get('/api/crm/clients', (req, res) => {
     res.json(getClients());
 });
 
-// 2. Ajouter un client
-app.post('/api/crm/clients', (req, res) => {
+// 2. Ajouter un client (multer pour supporter le FormData envoyé par le formulaire)
+app.post('/api/crm/clients', upload.single('brandProfile'), (req, res) => {
     try {
         const clients = getClients();
+        const brandProfile = req.file ? {
+            filename: req.file.filename,
+            originalName: req.file.originalname,
+            url: `/download?path=${encodeURIComponent(req.file.path)}`
+        } : null;
         const newClient = {
             id: Date.now().toString(),
             name: req.body.name || 'Sans Nom',
             company: req.body.company || '',
             email: req.body.email || '',
             phone: req.body.phone || '',
+            phone2: req.body.phone2 || '',
+            country: req.body.country || '',
+            businessType: req.body.businessType || '',
             status: req.body.status || 'Prospect',
-            brandProfile: req.body.brandProfile || null,
+            brandProfile,
             notes: Array.isArray(req.body.notes) ? req.body.notes : [],
             createdAt: new Date().toISOString()
         };
@@ -503,12 +511,21 @@ app.post('/api/crm/clients/:id/notes', (req, res) => {
     }
 });
 
-// 3. Mettre à jour un client
-app.put('/api/crm/clients/:id', (req, res) => {
+// 3. Mettre à jour un client (multer pour parser le FormData + gestion brandProfile)
+app.put('/api/crm/clients/:id', upload.single('brandProfile'), (req, res) => {
     try {
         let clients = getClients();
         const index = clients.findIndex(c => c.id === req.params.id);
-    if (index === -1) return res.status(404).json({ error: "Client introuvable" });
+        if (index === -1) return res.status(404).json({ error: "Client introuvable" });
+
+        let brandProfile = clients[index].brandProfile;
+        if (req.file) {
+            brandProfile = {
+                filename: req.file.filename,
+                originalName: req.file.originalname,
+                url: `/download?path=${encodeURIComponent(req.file.path)}`
+            };
+        }
 
         clients[index] = {
             ...clients[index],
@@ -516,8 +533,12 @@ app.put('/api/crm/clients/:id', (req, res) => {
             company: req.body.company !== undefined ? req.body.company : clients[index].company,
             email: req.body.email !== undefined ? req.body.email : clients[index].email,
             phone: req.body.phone !== undefined ? req.body.phone : clients[index].phone,
+            phone2: req.body.phone2 !== undefined ? req.body.phone2 : clients[index].phone2,
+            country: req.body.country !== undefined ? req.body.country : clients[index].country,
+            businessType: req.body.businessType !== undefined ? req.body.businessType : clients[index].businessType,
             status: req.body.status !== undefined ? req.body.status : clients[index].status,
-            notes: req.body.notes !== undefined ? req.body.notes : clients[index].notes
+            notes: req.body.notes !== undefined ? req.body.notes : clients[index].notes,
+            brandProfile
         };
 
         if (saveClients(clients)) {
@@ -590,6 +611,9 @@ app.post('/api/crm/import-clients', (req, res) => {
                     company: item.company || '',
                     email: item.email || '',
                     phone: item.phone || '',
+                    phone2: item.phone2 || '',
+                    country: item.country || '',
+                    businessType: item.businessType || '',
                     status: item.status || 'Prospect',
                     brandProfile: null,
                     notes: [],
