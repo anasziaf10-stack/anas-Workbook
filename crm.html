@@ -1153,10 +1153,27 @@
 
         async function sendImportRows(rowsData) {
             try {
-                const res = await fetch('/api/crm/import', {
+                // Convertit chaque ligne (tableau ou objet) en objet client attendu par le serveur
+                const clientsList = rowsData.map(row => {
+                    if (Array.isArray(row)) {
+                        // Format tableau : Company, Name, Email, Phone, Country, BusinessType
+                        return {
+                            company: row[0] || '',
+                            name: row[1] || '',
+                            email: row[2] || '',
+                            phone: row[3] || '',
+                            country: row[4] || '',
+                            businessType: row[5] || ''
+                        };
+                    }
+                    // Format déjà objet (JSON collé)
+                    return row;
+                }).filter(c => c && (c.name || c.company));
+
+                const res = await fetch('/api/crm/import-clients', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data: rowsData })
+                    body: JSON.stringify({ clientsList })
                 });
                 if (res.ok) {
                     showToast("Importation réussie !");
