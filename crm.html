@@ -169,6 +169,28 @@
             font-weight: 600;
         }
 
+        th.sortable-th {
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
+            transition: color 0.2s ease;
+        }
+
+        th.sortable-th:hover {
+            color: var(--text-primary);
+        }
+
+        th.sortable-th .sort-icon {
+            margin-left: 0.4rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+        }
+
+        th.sortable-th.active .sort-icon {
+            color: var(--accent-color);
+        }
+
         td {
             padding: 1rem;
             border-bottom: 1px solid var(--card-border);
@@ -420,7 +442,9 @@
                         <th>Nom / Contact</th>
                         <th>Entreprise</th>
                         <th>Email & Tél</th>
-                        <th>Pays</th>
+                        <th id="countryHeader" class="sortable-th" onclick="toggleCountrySort()" title="Cliquer pour trier par pays">
+                            Pays <i class="fa-solid fa-sort sort-icon" id="countrySortIcon"></i>
+                        </th>
                         <th>Statut</th>
                         <th>Notes</th>
                         <th>Brand Profile</th>
@@ -555,6 +579,7 @@
         let clientsData = [];
         let selectedClientIds = new Set();
         let currentNotesClientId = null;
+        let countrySortDirection = null; // null = pas de tri, 'asc' = A-Z, 'desc' = Z-A
 
         const COUNTRIES = [
     {name:"Afghanistan",dial:"+93"},
@@ -806,10 +831,52 @@
             try {
                 const res = await fetch('/api/crm/clients');
                 clientsData = await res.json();
-                renderClients(clientsData);
+                applyCurrentSortAndRender();
             } catch (err) {
                 console.error("Erreur de chargement :", err);
                 showToast("Erreur lors du chargement des clients", true);
+            }
+        }
+
+        // --- TRI PAR PAYS (A-Z / Z-A) ---
+        function toggleCountrySort() {
+            if (countrySortDirection === null || countrySortDirection === 'desc') {
+                countrySortDirection = 'asc';
+            } else {
+                countrySortDirection = 'desc';
+            }
+            applyCurrentSortAndRender();
+        }
+
+        function applyCurrentSortAndRender() {
+            let dataToRender = clientsData;
+
+            if (countrySortDirection) {
+                dataToRender = [...clientsData].sort((a, b) => {
+                    const countryA = (a.country || '').toLowerCase();
+                    const countryB = (b.country || '').toLowerCase();
+                    if (countryA < countryB) return countrySortDirection === 'asc' ? -1 : 1;
+                    if (countryA > countryB) return countrySortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            updateCountrySortIcon();
+            renderClients(dataToRender);
+        }
+
+        function updateCountrySortIcon() {
+            const header = document.getElementById('countryHeader');
+            const icon = document.getElementById('countrySortIcon');
+            if (countrySortDirection === 'asc') {
+                icon.className = 'fa-solid fa-arrow-down-a-z sort-icon';
+                header.classList.add('active');
+            } else if (countrySortDirection === 'desc') {
+                icon.className = 'fa-solid fa-arrow-down-z-a sort-icon';
+                header.classList.add('active');
+            } else {
+                icon.className = 'fa-solid fa-sort sort-icon';
+                header.classList.remove('active');
             }
         }
 
@@ -1153,7 +1220,7 @@
                     if (updatedClient) {
                         renderNotesList(updatedClient.notes || []);
                     }
-                    renderClients(clientsData);
+                    applyCurrentSortAndRender();
                 } else {
                     showToast("Erreur lors de l'ajout de la note", true);
                 }
