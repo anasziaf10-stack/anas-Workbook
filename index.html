@@ -112,6 +112,17 @@
         .btn-success { background: var(--success); }
         .btn-success:hover { background: #059669; }
 
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: rgba(59, 130, 246, 0.12);
+            box-shadow: none;
+        }
+
         /* --- BARRE D'ACTIONS ET MULTI-SÉLECTION --- */
         .actions-bar {
             display: flex;
@@ -319,6 +330,9 @@
         <div class="nav-links">
             <a href="/crm" class="btn"><i class="fa-solid fa-users"></i> CRM Clients</a>
             <a href="/report" class="btn btn-success"><i class="fa-solid fa-file-invoice"></i> Rapport Documents</a>
+            <button class="btn btn-outline" onclick="exportPerfumeNames()" title="Exporter uniquement la liste des noms des parfums (CSV)">
+                <i class="fa-solid fa-file-csv"></i> Exporter les Parfums
+            </button>
         </div>
     </header>
 
@@ -482,6 +496,32 @@
             } else {
                 alert("Erreur lors du téléchargement du fichier ZIP");
             }
+        }
+
+        // --- EXPORT DE LA LISTE DES NOMS DE PARFUMS (sans les documents) ---
+        // Génère un fichier CSV côté navigateur avec uniquement les noms de parfums.
+        function exportPerfumeNames() {
+            if (!perfumesData || perfumesData.length === 0) {
+                alert("Aucun parfum à exporter pour le moment.");
+                return;
+            }
+
+            const names = perfumesData.map(p => p.name).filter(Boolean);
+
+            // En-tête + une ligne par nom de parfum, avec échappement CSV basique
+            const csvLines = ['Nom du Parfum', ...names.map(n => `"${String(n).replace(/"/g, '""')}"`)];
+            const csvContent = csvLines.join('\r\n');
+
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const dateStr = new Date().toISOString().slice(0, 10);
+            a.download = `Liste_Parfums_${dateStr}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
         }
 
         // Démarrage
