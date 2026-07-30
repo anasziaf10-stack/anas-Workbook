@@ -5,7 +5,7 @@ const multer = require('multer');
 const pdfParseModule = require('pdf-parse');
 const archiver = require('archiver');
 const ExcelJS = require('exceljs');
-const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType } = require('docx');
+const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun, HeadingLevel } = require('docx');
 const PDFDocument = require('pdfkit');
 const { createClient } = require('@supabase/supabase-js');
 
@@ -290,6 +290,139 @@ app.get('/api/missing-docs-report', async (req, res) => {
         res.json(await generateReportData());
     } catch (err) {
         res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
+// --- EXPORT DU RAPPORT DE DOCUMENTS MANQUANTS (PDF / Excel / Word) ---
+// Corrige le "Cannot GET /api/export-report" : cette route n'existait pas auparavant.
+app.get('/api/export-report', async (req, res) => {
+    try {
+        const format = String(req.query.format || 'excel').toLowerCase();
+        const { report, stats, incompleteCount } = await generateReportData();
+        const docTypes = ['INCI', 'COA', 'MSDS'];
+        const timestamp = new Date().toISOString().slice(0, 10);
+
+        // --- EXCEL ---
+        if (format === 'excel' || format === 'xlsx') {
+            const workbook = new ExcelJS.Workbook();
+            const sheet = workbook.addWorksheet('Documents Manquants');
+
+            sheet.columns = [
+                { header: 'Parfum', key: 'name', width: 35 },
+                { header: 'INCI', key: 'INCI', width: 15 },
+                { header: 'COA', key: 'COA', width: 15 },
+                { header: 'MSDS', key: 'MSDS', width: 15 }
+            ];
+
+            report.forEach(item => {
+                sheet.addRow({
+                    name: item.name,
+                    INCI: item.present.includes('INCI') ? 'Présent' : 'Manquant',
+                    COA: item.present.includes('COA') ? 'Présent' : 'Manquant',
+                    MSDS: item.present.includes('MSDS') ? 'Présent' : 'Manquant'
+                });
+            });
+
+            sheet.getRow(1).font = { bold: true };
+            sheet.getRow(1).eachCell(cell => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
+                cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            });
+
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', `attachment; filename="Rapport_Documents_Manquants_${timestamp}.xlsx"`);
+            await workbook.xlsx.write(res);
+            return res.end();
+        }
+
+        // --- WORD ---
+        if (format === 'word' || format === 'docx') {
+            const headerRow = new TableRow({
+                children: ['Parfum', 'INCI', 'COA', 'MSDS'].map(label => new TableCell({
+                    width: { size: 25, type: WidthType.PERCENTAGE },
+                    children: [new Paragraph({ children: [new TextRun({ text: label, bold: true })] })]
+                }))
+            });
+
+            const bodyRows = report.map(item => new TableRow({
+                children: [
+                    item.name,
+                    item.present.includes('INCI') ? 'Présent' : 'Manquant',
+                    item.present.includes('COA') ? 'Présent' : 'Manquant',
+                    item.present.includes('MSDS') ? 'Présent' : 'Manquant'
+                ].map(text => new TableCell({
+                    width: { size: 25, type: WidthType.PERCENTAGE },
+                    children: [new Paragraph({ children: [new TextRun({ text: String(text) })] })]
+                }))
+            }));
+
+            const doc = new Document({
+                sections: [{
+                    children: [
+                        new Paragraph({
+                            heading: HeadingLevel.HEADING_1,
+                            children: [new TextRun('Rapport - Documents Manquants')]
+                        }),
+                        new Paragraph({
+                            children: [new TextRun(`Parfums incomplets : ${incompleteCount}`)]
+                        }),
+                        new Paragraph({
+                            children: [new TextRun(`INCI manquants : ${stats.missingINCI}  |  COA manquants : ${stats.missingCOA}  |  MSDS manquants : ${stats.missingMSDS}`)]
+                        }),
+                        new Paragraph({ text: '' }),
+                        new Table({
+                            width: { size: 100, type: WidthType.PERCENTAGE },
+                            rows: [headerRow, ...bodyRows]
+                        })
+                    ]
+                }]
+            });
+
+            const buffer = await Packer.toBuffer(doc);
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            res.setHeader('Content-Disposition', `attachment; filename="Rapport_Documents_Manquants_${timestamp}.docx"`);
+            return res.send(buffer);
+        }
+
+        // --- PDF ---
+        if (format === 'pdf') {
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="Rapport_Documents_Manquants_${timestamp}.pdf"`);
+
+            const pdfDoc = new PDFDocument({ margin: 40 });
+            pdfDoc.pipe(res);
+
+            pdfDoc.fontSize(18).text('Rapport - Documents Manquants', { align: 'center' });
+            pdfDoc.moveDown();
+            pdfDoc.fontSize(11)
+                .text(`Parfums incomplets : ${incompleteCount}`)
+                .text(`INCI manquants : ${stats.missingINCI}`)
+                .text(`COA manquants : ${stats.missingCOA}`)
+                .text(`MSDS manquants : ${stats.missingMSDS}`);
+            pdfDoc.moveDown();
+
+            if (report.length === 0) {
+                pdfDoc.fontSize(12).text('Tous les parfums ont leurs documents complets !');
+            } else {
+                report.forEach(item => {
+                    if (pdfDoc.y > 720) pdfDoc.addPage();
+                    pdfDoc.fontSize(12).fillColor('black').text(item.name, { underline: true });
+                    const line = docTypes
+                        .map(type => `${type}: ${item.present.includes(type) ? 'Présent' : 'Manquant'}`)
+                        .join('   |   ');
+                    pdfDoc.fontSize(10).text(line);
+                    pdfDoc.moveDown(0.6);
+                });
+            }
+
+            pdfDoc.end();
+            return;
+        }
+
+        return res.status(400).json({ error: "Format non supporté. Utilisez format=pdf, format=excel ou format=word." });
+    } catch (err) {
+        console.error("Erreur lors de l'export du rapport :", err);
+        res.status(500).json({ error: "Erreur lors de la génération de l'export" });
     }
 });
 
