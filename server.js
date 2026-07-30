@@ -1,17 +1,18 @@
 const express = require('express');
 const fs = require('fs');
-const path = require('path');
+const path = path = require('path');
+const pathModule = require('path');
 const multer = require('multer');
 const pdfParseModule = require('pdf-parse');
 const archiver = require('archiver');
 const ExcelJS = require('exceljs');
-const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType } = require('docx');
+const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun } = require('docx');
 const PDFDocument = require('pdfkit');
 const { createClient } = require('@supabase/supabase-js');
 
 // --- CONFIGURATION SUPABASE ---
 const supabaseUrl = 'https://ucyakopdwvinspnflfns.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjeWFrb3Bkd3ZpbnNwbmZsZm5zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NTMzNTgyMywiZXhwIjoyMTAwOTExODIzfQ.gFX8320QdN9t7XTXBa5z7_I1MyuNTzS0BMWNFCrjO1I';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjeWFrb3Bkd3ZpbnNwbmZsfnsiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNzg1MzM1ODIzLCJleHAiOjIxMDA5MTE4MjN9.gFX8320QdN9t7XTXBa5z7_I1MyuNTzS0BMWNFCrjO1I';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // --- PARSER PDF ---
@@ -290,6 +291,107 @@ app.get('/api/missing-docs-report', async (req, res) => {
         res.json(await generateReportData());
     } catch (err) {
         res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
+// --- ROUTE D'EXPORTATION DU RAPPORT (PDF, EXCEL, WORD) ---
+app.get('/api/export-report', async (req, res) => {
+    try {
+        const format = (req.query.format || '').toLowerCase();
+        const reportData = await generateReportData();
+        const items = reportData.report;
+
+        if (format === 'pdf') {
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=rapport-documents-manquants.pdf');
+
+            const doc = new PDFDocument({ margin: 30, size: 'A4' });
+            doc.pipe(res);
+
+            doc.fontSize(18).text('Rapport - Documents Manquants', { align: 'center' });
+            doc.moveDown();
+            doc.fontSize(10).text(`Total parfums incomplets : ${reportData.incompleteCount}`);
+            doc.text(`INCI manquants : ${reportData.stats.missingINCI} | COA manquants : ${reportData.stats.missingCOA} | MSDS manquants : ${reportData.stats.missingMSDS}`);
+            doc.moveDown();
+
+            items.forEach((item) => {
+                doc.fontSize(12).text(item.name, { underline: true });
+                doc.fontSize(10).text(`- Manquants : ${item.missing.join(', ')}`);
+                doc.text(`- Présents : ${item.present.join(', ') || 'Aucun'}`);
+                doc.moveDown(0.5);
+            });
+
+            doc.end();
+
+        } else if (format === 'excel') {
+            const workbook = new ExcelJS.Workbook();
+            const sheet = workbook.addWorksheet('Documents Manquants');
+
+            sheet.columns = [
+                { header: 'Nom du Parfum', key: 'name', width: 30 },
+                { header: 'Documents Manquants', key: 'missing', width: 30 },
+                { header: 'Documents Présents', key: 'present', width: 30 }
+            ];
+
+            items.forEach(item => {
+                sheet.addRow({
+                    name: item.name,
+                    missing: item.missing.join(', '),
+                    present: item.present.join(', ')
+                });
+            });
+
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', 'attachment; filename=rapport-documents-manquants.xlsx');
+
+            await workbook.xlsx.write(res);
+            res.end();
+
+        } else if (format === 'word') {
+            const doc = new Document({
+                sections: [{
+                    properties: {},
+                    children: [
+                        new Paragraph({
+                            children: [new TextRun({ text: "Rapport - Documents Manquants", bold: true, size: 28 })]
+                        }),
+                        new Paragraph({
+                            children: [new TextRun({ text: `Total parfums incomplets : ${reportData.incompleteCount}`, size: 20 })]
+                        }),
+                        new Paragraph({ text: "" }),
+                        new Table({
+                            rows: [
+                                new TableRow({
+                                    children: [
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Parfum", bold: true })] })] }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Manquants", bold: true })] })] }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Présents", bold: true })] })] })
+                                    ]
+                                }),
+                                ...items.map(item => new TableRow({
+                                    children: [
+                                        new TableCell({ children: [new Paragraph(item.name)] }),
+                                        new TableCell({ children: [new Paragraph(item.missing.join(', '))] }),
+                                        new TableCell({ children: [new Paragraph(item.present.join(', ') || 'Aucun')] })
+                                    ]
+                                }))
+                            ]
+                        })
+                    ]
+                })
+            });
+
+            const buffer = await Packer.toBuffer(doc);
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            res.setHeader('Content-Disposition', 'attachment; filename=rapport-documents-manquants.docx');
+            res.send(buffer);
+
+        } else {
+            res.status(400).json({ error: "Format d'exportation non supporté ou invalide (utiliser pdf, excel ou word)." });
+        }
+    } catch (err) {
+        console.error("Erreur lors de l'export :", err);
+        res.status(500).json({ error: "Erreur interne lors de la génération du fichier d'export." });
     }
 });
 
