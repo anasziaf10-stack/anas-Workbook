@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anas Workbook - Gestion des Parfums</title>
-    
+    <title>Anas Workbook - Rapport Documents Manquants</title>
+
     <!-- Lien vers les icônes FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Correctif CSS du menu déroulant du serveur -->
     <link rel="stylesheet" href="/css/fix-dropdown.css">
 
@@ -40,7 +40,6 @@
             min-height: 100vh;
         }
 
-        /* --- ANIMATIONS KEYFRAMES --- */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -52,12 +51,7 @@
             100% { transform: scale(1); }
         }
 
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* --- EN-TÊTE AVEC ANIMATION --- */
+        /* --- EN-TÊTE --- */
         header {
             display: flex;
             justify-content: space-between;
@@ -82,7 +76,7 @@
         }
 
         header h1 i {
-            color: var(--primary);
+            color: var(--danger);
             animation: pulse 2s infinite;
         }
 
@@ -117,7 +111,40 @@
         .btn-success { background: var(--success); }
         .btn-success:hover { background: #059669; }
 
-        /* --- BARRE D'ACTIONS ET MULTI-SÉLECTION --- */
+        /* --- STATISTIQUES --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            animation: fadeIn 0.6s ease-out;
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .stat-card .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .stat-total .stat-value { color: var(--text-main); }
+        .stat-inci .stat-value { color: var(--warning); }
+        .stat-coa .stat-value { color: var(--danger); }
+        .stat-msds .stat-value { color: #f472b6; }
+
+        /* --- BARRE DE RECHERCHE --- */
         .actions-bar {
             display: flex;
             justify-content: space-between;
@@ -157,14 +184,7 @@
             color: var(--text-muted);
         }
 
-        .selection-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        /* --- GRILLE DES CARTES PARFUMS --- */
+        /* --- GRILLE DES CARTES --- */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -185,37 +205,13 @@
         .card:hover {
             transform: translateY(-5px) scale(1.02);
             box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            border-color: var(--primary);
-        }
-
-        /* Cases à cocher pour la multi-sélection */
-        .card-checkbox {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: var(--primary);
-            transform: scale(1.2);
-            transition: transform 0.2s;
-        }
-
-        .card-checkbox:hover {
-            transform: scale(1.4);
-        }
-
-        .card.selected {
-            border: 2px solid var(--primary);
-            background: #1e293b;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            border-color: var(--danger);
         }
 
         .card-title {
             font-size: 1.2rem;
             margin-bottom: 15px;
             color: #fff;
-            padding-right: 30px;
         }
 
         .doc-list {
@@ -236,48 +232,23 @@
         }
 
         .doc-item.available { border-left: 4px solid var(--success); }
-        .doc-item.missing { border-left: 4px solid var(--danger); opacity: 0.6; }
+        .doc-item.missing { border-left: 4px solid var(--danger); opacity: 0.75; }
 
-        .doc-item a {
-            color: var(--primary);
-            text-decoration: none;
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
         }
 
-        .doc-item a:hover {
-            text-decoration: underline;
-        }
-
-        /* --- BARRE FLOTTANTE POUR TELECHARGEMENT EN MASSE (ZIP) --- */
-        .floating-action-bar {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            left: 30px;
-            background: var(--primary);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 50px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            transform: translateY(150px);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 1000;
-            flex-wrap: wrap;
-        }
-
-        .floating-action-bar.active {
-            transform: translateY(0);
-        }
-
-        .badge {
-            background: white;
-            color: var(--primary);
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-weight: bold;
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--success);
+            margin-bottom: 15px;
+            display: block;
         }
 
         /* --- RESPONSIVE MOBILE --- */
@@ -302,97 +273,122 @@
                 align-items: stretch;
             }
             .search-box { width: 100%; }
-            .selection-controls { justify-content: space-between; width: 100%; }
             .grid-container {
                 grid-template-columns: 1fr;
                 gap: 14px;
             }
-            .floating-action-bar {
-                left: 12px;
-                right: 12px;
-                bottom: 12px;
-                padding: 12px 16px;
-                border-radius: 16px;
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
         @media (max-width: 400px) {
             header h1 { font-size: 1.1rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1><i class="fa-solid fa-flask"></i> Anas Workbook - Parfums</h1>
+        <h1><i class="fa-solid fa-file-circle-exclamation"></i> Rapport - Documents Manquants</h1>
         <div class="nav-links">
-            <a href="/crm" class="btn"><i class="fa-solid fa-users"></i> CRM Clients</a>
-            <a href="/report" class="btn btn-success"><i class="fa-solid fa-file-invoice"></i> Rapport Documents</a>
+            <a href="/" class="btn"><i class="fa-solid fa-flask"></i> Parfums</a>
+            <a href="/crm" class="btn btn-success"><i class="fa-solid fa-users"></i> CRM Clients</a>
         </div>
     </header>
+
+    <!-- Statistiques globales -->
+    <div class="stats-grid" id="statsGrid">
+        <!-- Rempli dynamiquement en JS -->
+    </div>
 
     <div class="actions-bar">
         <div class="search-box">
             <i class="fa-solid fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Rechercher un parfum..." onkeyup="filterPerfumes()">
-        </div>
-
-        <div class="selection-controls">
-            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"> 
-                <strong>Tout Sélectionner</strong>
-            </label>
+            <input type="text" id="searchInput" placeholder="Rechercher un parfum..." onkeyup="filterReport()">
         </div>
     </div>
 
     <!-- Grille de contenus -->
-    <div class="grid-container" id="perfumeGrid">
+    <div class="grid-container" id="reportGrid">
         <!-- Rempli dynamiquement en JS -->
     </div>
 
-    <!-- Barre Flottante de Sélection Multiples -->
-    <div class="floating-action-bar" id="floatingBar">
-        <span><span class="badge" id="selectedCount">0</span> Fichier(s) sélectionné(s)</span>
-        <button class="btn btn-success" onclick="downloadSelectedZip()">
-            <i class="fa-solid fa-file-zipper"></i> Télécharger en ZIP
-        </button>
-    </div>
-
     <script>
-        let perfumesData = [];
-        let selectedFiles = new Set();
+        let reportData = [];
+        let statsData = {};
 
-        // Charger les données de l'API
-        async function loadPerfumes() {
+        async function loadReport() {
             try {
-                const res = await fetch('/api/perfumes-docs');
-                perfumesData = await res.json();
-                renderCards(perfumesData);
+                const res = await fetch('/api/missing-docs-report');
+                const data = await res.json();
+                reportData = data.report || [];
+                statsData = data.stats || {};
+                renderStats(data.incompleteCount || 0, statsData);
+                renderReportCards(reportData);
             } catch (err) {
-                console.error("Erreur de chargement :", err);
+                console.error("Erreur de chargement du rapport :", err);
+                document.getElementById('reportGrid').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i>
+                        Erreur lors du chargement du rapport.
+                    </div>
+                `;
             }
         }
 
-        // Affichage dynamique des cartes avec animations différées
-        function renderCards(data) {
-            const container = document.getElementById('perfumeGrid');
+        function renderStats(incompleteCount, stats) {
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card stat-total">
+                    <div class="stat-value">${incompleteCount}</div>
+                    <div class="stat-label">Parfums incomplets</div>
+                </div>
+                <div class="stat-card stat-inci">
+                    <div class="stat-value">${stats.missingINCI || 0}</div>
+                    <div class="stat-label">INCI manquants</div>
+                </div>
+                <div class="stat-card stat-coa">
+                    <div class="stat-value">${stats.missingCOA || 0}</div>
+                    <div class="stat-label">COA manquants</div>
+                </div>
+                <div class="stat-card stat-msds">
+                    <div class="stat-value">${stats.missingMSDS || 0}</div>
+                    <div class="stat-label">MSDS manquants</div>
+                </div>
+            `;
+        }
+
+        function renderReportCards(data) {
+            const container = document.getElementById('reportGrid');
             container.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Tous les parfums ont leurs documents complets !
+                    </div>
+                `;
+                return;
+            }
+
+            const allTypes = ['INCI', 'COA', 'MSDS'];
 
             data.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.style.animationDelay = `${(index % 15) * 0.05}s`; // Animation fluide en cascade
+                card.style.animationDelay = `${(index % 15) * 0.05}s`;
 
                 let docsHTML = '';
-                const types = ['INCI', 'COA', 'MSDS'];
-
-                types.forEach(type => {
-                    const fileObj = item.files[type];
-                    if (fileObj) {
+                allTypes.forEach(type => {
+                    const isPresent = item.present && item.present.includes(type);
+                    if (isPresent) {
                         docsHTML += `
                             <li class="doc-item available">
                                 <span><i class="fa-solid fa-circle-check" style="color:var(--success)"></i> ${type}</span>
-                                <a href="${fileObj.url}" target="_blank"><i class="fa-solid fa-download"></i></a>
+                                <small>Présent</small>
                             </li>
                         `;
                     } else {
@@ -406,7 +402,6 @@
                 });
 
                 card.innerHTML = `
-                    <input type="checkbox" class="card-checkbox" onchange="toggleCardSelection(this, '${item.name}')">
                     <h3 class="card-title">${item.name}</h3>
                     <ul class="doc-list">${docsHTML}</ul>
                 `;
@@ -415,76 +410,14 @@
             });
         }
 
-        // Recherche dynamique
-        function filterPerfumes() {
+        function filterReport() {
             const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = perfumesData.filter(p => p.name.toLowerCase().includes(query));
-            renderCards(filtered);
-        }
-
-        // Gestion de la sélection par carte
-        function toggleCardSelection(checkbox, perfumeName) {
-            const card = checkbox.closest('.card');
-            const perfume = perfumesData.find(p => p.name === perfumeName);
-
-            if (checkbox.checked) {
-                card.classList.add('selected');
-                Object.values(perfume.files).forEach(f => selectedFiles.add(f.path));
-            } else {
-                card.classList.remove('selected');
-                Object.values(perfume.files).forEach(f => selectedFiles.delete(f.path));
-            }
-            updateFloatingBar();
-        }
-
-        // Sélectionner tout
-        function toggleSelectAll(masterCheckbox) {
-            const checkboxes = document.querySelectorAll('.card-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = masterCheckbox.checked;
-                cb.dispatchEvent(new Event('change'));
-            });
-        }
-
-        // Mettre à jour la barre flottante de téléchargement ZIP
-        function updateFloatingBar() {
-            const bar = document.getElementById('floatingBar');
-            const count = document.getElementById('selectedCount');
-            count.innerText = selectedFiles.size;
-
-            if (selectedFiles.size > 0) {
-                bar.classList.add('active');
-            } else {
-                bar.classList.remove('active');
-            }
-        }
-
-        // Lancer le téléchargement groupé ZIP
-        async function downloadSelectedZip() {
-            if (selectedFiles.size === 0) return;
-
-            const response = await fetch('/download-zip', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ files: Array.from(selectedFiles) })
-            });
-
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "Documents_Selectionnes.zip";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            } else {
-                alert("Erreur lors du téléchargement du fichier ZIP");
-            }
+            const filtered = reportData.filter(p => p.name.toLowerCase().includes(query));
+            renderReportCards(filtered);
         }
 
         // Démarrage
-        loadPerfumes();
+        loadReport();
     </script>
 </body>
 </html>
