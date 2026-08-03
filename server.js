@@ -426,6 +426,74 @@ app.get('/api/export-report', async (req, res) => {
     }
 });
 
+// --- TÉLÉCHARGEMENT GROUPÉ EN ZIP (bouton "Télécharger en ZIP" de index.html) ---
+app.post('/download-zip', async (req, res) => {
+    try {
+        const files = Array.isArray(req.body.files) ? req.body.files : [];
+        if (files.length === 0) {
+            return res.status(400).json({ error: "Aucun fichier fourni" });
+        }
+
+        // Sécurité : n'autoriser que des fichiers réellement présents dans les dossiers connus du serveur
+        const allowedRoots = [...TARGET_FOLDERS, TEMPLATES_FOLDER, PRICES_FOLDER, BRAND_PROFILES_FOLDER]
+            .map(f => path.resolve(f));
+
+        const safeFiles = files.filter(filePath => {
+            const resolved = path.resolve(filePath);
+            return allowedRoots.some(root => resolved.startsWith(root)) && fs.existsSync(resolved);
+        });
+
+        if (safeFiles.length === 0) {
+            return res.status(400).json({ error: "Aucun fichier valide trouvé" });
+        }
+
+        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Disposition', 'attachment; filename="Documents_Selectionnes.zip"');
+
+        const archive = archiver('zip', { zlib: { level: 9 } });
+        archive.on('error', err => {
+            console.error("Erreur archiver :", err);
+            if (!res.headersSent) res.status(500).end();
+        });
+
+        archive.pipe(res);
+
+        // On préfixe chaque fichier par le nom de son dossier parent pour éviter
+        // les collisions de noms (ex: plusieurs fichiers "INCI.pdf" pour des parfums différents)
+        safeFiles.forEach(filePath => {
+            const parentFolder = path.basename(path.dirname(filePath));
+            const zipEntryName = path.join(parentFolder, path.basename(filePath));
+            archive.file(filePath, { name: zipEntryName });
+        });
+
+        await archive.finalize();
+    } catch (err) {
+        console.error("Erreur lors de la création du ZIP :", err);
+        if (!res.headersSent) res.status(500).json({ error: "Erreur lors de la génération du ZIP" });
+    }
+});
+
+// --- TÉLÉCHARGEMENT D'UN FICHIER UNIQUE (utilisé par les liens /download?path=...) ---
+app.get('/download', (req, res) => {
+    try {
+        const filePath = req.query.path;
+        if (!filePath) return res.status(400).send("Chemin de fichier manquant");
+
+        const allowedRoots = [...TARGET_FOLDERS, TEMPLATES_FOLDER, PRICES_FOLDER, BRAND_PROFILES_FOLDER, __dirname]
+            .map(f => path.resolve(f));
+        const resolved = path.resolve(filePath);
+
+        if (!allowedRoots.some(root => resolved.startsWith(root)) || !fs.existsSync(resolved)) {
+            return res.status(404).send("Fichier introuvable");
+        }
+
+        res.download(resolved);
+    } catch (err) {
+        console.error("Erreur lors du téléchargement :", err);
+        res.status(500).send("Erreur lors du téléchargement");
+    }
+});
+
 // --- API CRM SUPABASE ---
 
 // 1. Récupérer tous les clients
